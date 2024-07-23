@@ -16,9 +16,9 @@ def get_score_at_test(model,input,result,label,issave=True,savepath=None):
     return 'MES:' + str(mse),'Spearman:' + str(spearmanr) , 'r2:' + str(r2), 'best:' + str(result.Best)
 
 
-import keras
-from keras.layers import Input, Dense, BatchNormalization
-from keras.layers.core import *
+import tensorflow as tf
+from tensorflow.keras.layers import Input, Dense, BatchNormalization, Activation, Dropout, Lambda, Reshape, Permute, Flatten, concatenate
+
 def mlp(inputs,output_layer_activation,output_dim,output_use_bias,
         hidden_layer_num,hidden_layer_units_num,hidden_layer_activation,dropout,
         name=None,output_regularizer=None):
@@ -31,7 +31,7 @@ def mlp(inputs,output_layer_activation,output_dim,output_use_bias,
     if output_layer_activation == 'sigmoid' or output_layer_activation == 'tanh':
         x = Dense(hidden_layer_units_num)(x)
         
-        x = keras.layers.concatenate([x,inputs])
+        x = concatenate([x,inputs])
         x = Activation(hidden_layer_activation)(x)
         x = Dense(output_dim,use_bias=output_use_bias,
                   kernel_regularizer='l2',activity_regularizer=output_regularizer)(x)

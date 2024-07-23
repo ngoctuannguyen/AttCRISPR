@@ -1,12 +1,17 @@
-import keras
-from keras.layers import Input, Dense, Conv2D, Flatten, BatchNormalization
-from keras.layers.core import *
-from keras.models import *
-from keras.callbacks import EarlyStopping, Callback,LambdaCallback
-from keras.optimizers import *
-import keras.backend as K
+import tensorflow as tf
+from tensorflow.keras.layers import (
+    Softmax, GlobalAveragePooling1D, Input, Conv2D, Flatten, 
+    BatchNormalization, Multiply, Cropping1D, Dot, Bidirectional,
+    LSTM, GRU, Dense, Dropout, Reshape, SpatialDropout1D, Lambda
+)
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import Model
+from tensorflow.keras.callbacks import EarlyStopping, Callback, LambdaCallback
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD
+import tensorflow.keras.backend as K
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from LearnUtil import *
+import math
 
 def model(params):
     onehot_input = Input(name = 'onehot_input', shape = (21,4, 1,))
@@ -14,7 +19,7 @@ def model(params):
     
     avgpooling_spatial = Lambda(lambda inp: K.mean(inp,axis=3,keepdims=True))(conv_0)
     maxpooling_spatial = Lambda(lambda inp: K.max(inp,axis=3,keepdims=True))(conv_0)
-    attention_spatial = keras.layers.concatenate([maxpooling_spatial,avgpooling_spatial],axis=3)
+    attention_spatial = concatenate([maxpooling_spatial,avgpooling_spatial],axis=3)
     attention_spatial = BatchNormalization()(attention_spatial)
     attention_spatial = Conv2D(1, (3, 2), padding='same', activation='sigmoid',name='spatial_attention')(attention_spatial)
     conv_output = Lambda(lambda inp: inp[0]*inp[1],name='spatial_attention_result')( [onehot_input,attention_spatial])
@@ -24,7 +29,7 @@ def model(params):
         convs.append(
             Conv2D(params['cnn_filters_num'],(i+2,4),strides=(1,4),padding='same',activation='relu')(conv_output)
             )
-    conv_output = keras.layers.concatenate(convs,name='conv_output')
+    conv_output = concatenate(convs,name='conv_output')
     pooling_output = conv_output
     cnn_output = Flatten()(pooling_output)
 

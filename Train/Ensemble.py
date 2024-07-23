@@ -1,13 +1,15 @@
-import keras
-from keras.preprocessing import text,sequence
-from keras.layers import Input, BatchNormalization, Softmax
-from keras.layers.core import *
-from keras.models import *
-from keras.callbacks import Callback,LambdaCallback
-from keras.optimizers import *
-import keras.backend as K
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.layers import Input, BatchNormalization, Softmax, Dense
+# from keras.layers.core import *
+# from keras.models import *
+from tensorflow.keras.callbacks import Callback, LambdaCallback
+from tensorflow.keras.optimizers import *
+import tensorflow.keras.backend as K
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from LearnUtil import *
+from tensorflow.keras.preprocessing import text, sequence
+from tensorflow.keras.models import Model, load_model
 
 def model(params,withbiofeature=True,cnn_trainable=False,rnn_trainable=False,load_weight=False):
     onehot_input = Input(name='onehot_input', shape = (21,4, 1,))
@@ -18,7 +20,7 @@ def model(params,withbiofeature=True,cnn_trainable=False,rnn_trainable=False,loa
     rnnmodel.trainable = rnn_trainable
     x_cnn = cnnmodel(onehot_input)
     x_rnn = rnnmodel(onehot_input)
-    x = keras.layers.concatenate([x_rnn,x_cnn])
+    x = tf.keras.layers.concatenate([x_rnn,x_cnn])
     if withbiofeature:
         ######Biofeat######
         x_bio = mlp(biological_input,
@@ -26,10 +28,10 @@ def model(params,withbiofeature=True,cnn_trainable=False,rnn_trainable=False,loa
                     hidden_layer_num=params['bio_fc_hidden_layer_num'],hidden_layer_units_num=params['bio_fc_hidden_layer_units_num'],
                     hidden_layer_activation='relu',dropout=params['bio_fc_dropout'],
                     name='biofeat_embedding')
-        output = keras.layers.concatenate([x,x_bio])
+        output = tf.keras.layers.concatenate([x,x_bio])
     else :
         output = x
-    output = Dense(units=1,kernel_initializer=keras.initializers.RandomNormal(mean=0.4, stddev=0.05),
+    output = Dense(units=1,kernel_initializer=tf.keras.initializers.RandomNormal(mean=0.4, stddev=0.05),
                    use_bias=False,bias_initializer='zero',name='last_weight_avg')(output)
     model = Model(inputs=[onehot_input, biological_input],
                   outputs=[output])

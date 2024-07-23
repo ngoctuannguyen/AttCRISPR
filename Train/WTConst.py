@@ -10,7 +10,7 @@ CNNParams = {
     'cnn_conv_num':3,
     'cnn_last_layer_units_num':54
     }
-from keras.optimizers import *
+from tensorflow.keras.optimizers import *
 RNNParams = {
     'train_batch_size':128,
     'train_epochs_num':1000,
@@ -68,5 +68,5 @@ Params = {
     'RNNParams':RNNParams,
     'EnsembleParams':EnsembleParams,
     'FineTuning':FineTuning,
-    'ParamsRanges':ParamsRanges
-    }
+    'ParamsRanges':ParamsRanges,
+}

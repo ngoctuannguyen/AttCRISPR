@@ -1,11 +1,14 @@
-import keras
-from keras.layers import Softmax,GlobalAveragePooling1D,Input, Conv2D, Flatten, BatchNormalization, Multiply,Cropping1D,dot, Bidirectional
-from keras.layers.core import *
-from keras.layers.recurrent import LSTM,GRU
-from keras.models import *
-from keras.callbacks import EarlyStopping, Callback,LambdaCallback
-from keras.optimizers import *
-import keras.backend as K
+import tensorflow as tf
+# from tensorflow.keras.layers import (
+#     Softmax, GlobalAveragePooling1D, Input, Conv2D, Flatten, 
+#     BatchNormalization, Multiply, Cropping1D, Dot, Bidirectional,
+#     LSTM, GRU, Dense, Dropout, Reshape, SpatialDropout1D, Lambda
+# )
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import Model
+from tensorflow.keras.callbacks import EarlyStopping, Callback, LambdaCallback
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD
+import tensorflow.keras.backend as K
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from LearnUtil import *
 import math
@@ -42,8 +45,8 @@ def model(params):
 
     decoder_input = embedded
     decoder = GRU(params['rnn_unit_num'],return_sequences=True,return_state=True,unroll=True,
-                  kernel_regularizer=keras.regularizers.l2(0.01),
-                  recurrent_regularizer=keras.regularizers.l2(0.01),dropout=0.25,recurrent_dropout=0.25)
+                  kernel_regularizer=tf.keras.regularizers.l2(0.01),
+                  recurrent_regularizer=tf.keras.regularizers.l2(0.01),dropout=0.25,recurrent_dropout=0.25)
     decoder = Bidirectional(decoder,merge_mode='sum',name='decoder')
     if params['rnn_use_context_state']:
         decoder_output,dc1,dc2 = decoder(decoder_input,initial_state=[ec1,ec2])  
@@ -68,7 +71,7 @@ def model(params):
                 align
                 )
         ## add l2 regular
-        at = keras.layers.concatenate(atat)
+        at = concatenate(atat)
         at = BatchNormalization()(at)
         #l2(0.00001) is opt while 0.001 is best
         at = Dense(21,activation='softmax',use_bias=True,activity_regularizer=keras.regularizers.l2(0.00001))(at)
@@ -77,7 +80,7 @@ def model(params):
         at = Reshape((1,21,))(at)
         aat.append(at)
     #aat[i][j] importance of pos[j] in scoring pos[i]
-    m = keras.layers.concatenate(aat,axis=-2)
+    m = concatenate(aat,axis=-2)
     weight = Lambda(lambda inp: K.constant(GaussianBuffer)*inp ,name = 'temporal_attention')(m)
     weightavg = Lambda(lambda inp: K.batch_dot(inp[0],inp[1]),name='weight_avg')([weight,encoder_output])
     
@@ -89,12 +92,12 @@ def model(params):
         scoreat.append(
             dot([tat,edat],axes=-1)
             )
-    score = keras.layers.concatenate(scoreat)
+    score = concatenate(scoreat)
     
     rnn_embedded = score
     #magic
     rnn_embedded = Dropout(rate=params['rnn_last_dropout'])(rnn_embedded)
-    output = Dense(units=1,kernel_regularizer=keras.regularizers.l2(0.001),kernel_constraint=keras.constraints.NonNeg(),
+    output = Dense(units=1,kernel_regularizer=tf.keras.regularizers.l2(0.001),kernel_constraint=tf.keras.constraints.NonNeg(),
                    name='temporal_score',activation=params['rnn_last_activation'],
                    use_bias=params['rnn_last_use_bias'])(rnn_embedded)
     model = Model(inputs=[onehot_input],

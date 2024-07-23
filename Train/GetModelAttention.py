@@ -1,17 +1,14 @@
-import keras
-from keras.models import load_model
+import tensorflow as tf
+from tensorflow.keras.models import load_model, Model
 import math
 import pickle
 import numpy as np
-from keras.models import *
 import scipy as sp
 from sklearn.model_selection import train_test_split
 import os
 #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+from tensorflow.keras.callbacks import Callback, LambdaCallback
 
-
-from keras.callbacks import Callback
-from keras.callbacks import LambdaCallback
 x_attention_onehot = None
 x_attention_biofeat = None
 x_attention_seq = None
