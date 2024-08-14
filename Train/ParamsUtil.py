@@ -28,7 +28,7 @@ def ZScore(biofeat):
         for j in range(len(biofeat)):
             biofeat[j][i] = (biofeat[j][i]-avg) / sigma
 
-#### the same as method of Wang et al. ####
+# #### the same as method of Wang et al. ####
 def load_data_kf(X,X_biofeat,y):
     from sklearn.model_selection import ShuffleSplit
     train_test_data = []
@@ -83,7 +83,20 @@ def ReadData(dataset):
     params = GetParams(dataset)
     pkl = open(params['data_file'],'rb')
     x_onehot = pickle.load(pkl)
+    print(x_onehot)
     x_biofeat = pickle.load(pkl)
+    print(x_biofeat)
+    ZScore(x_biofeat)
+    label = pickle.load(pkl)
+    x_seq = pickle.load(pkl)
+    return SplitData(x_onehot,x_biofeat,label)
+
+def ReadData(dataset):
+    params = GetParams(dataset)
+    pkl = open("WTData.pkl",'rb')
+    x_onehot = pickle.load(pkl)
+    x_biofeat = pickle.load(pkl)
+    print(x_biofeat, x_biofeat.shape)
     ZScore(x_biofeat)
     label = pickle.load(pkl)
     x_seq = pickle.load(pkl)
@@ -125,3 +138,7 @@ def AddNoise(onehot,biofeat,label,rate=50,intensity=0.30):
     label=t_label[index]
 
     return onehot,biofeat,label
+
+if __name__ == "__main__":
+    import ParamsUtil
+    ReadData('WT')

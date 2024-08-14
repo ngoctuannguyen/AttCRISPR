@@ -21,20 +21,20 @@ def ReadData(dataset):
     y = pickle.load(pkl)
     x_seq = pickle.load(pkl)
     global x_attention_onehot,x_attention_biofeat,x_attention_seq,y_attention
-    x_attention_onehot = x_onehot
-    x_attention_biofeat = x_biofeat
-    x_attention_seq = x_seq
-    y_attention = y
+    x_attention_onehot = x_onehot ##### [0] (datasize,21,4, 1)
+    x_attention_biofeat = x_biofeat ### [1] (datasize,11)
+    x_attention_seq = x_seq ### [3] (datasize,21) (A, T, G, C: 1, 2, 3, 4)
+    y_attention = y ### [2] (datasize,1) (Score)
 def get_local_temporal_attention(model,index):
-    seq = x_attention_seq[index]
-    onehot = x_attention_onehot[index].reshape((1,21,4,1))
+    seq = x_attention_seq[index] 
+    onehot = x_attention_onehot[index].reshape((1,21,4,1)) ## (21, 4, 1)    
     print('check:'+str(seq))
     
     last_layer_weight = model.get_layer('temporal_score').get_weights()[0].reshape((-1))
     temporal_layer_model = Model(
         inputs=model.inputs[0], outputs=model.get_layer('score_at_each_position').output)
     ##(datasize,21,4,1)
-    score_at_each_position = temporal_layer_model.predict(onehot)
+    score_at_each_position = temporal_layer_model.predict(onehot)       
     baseline = np.mean(score_at_each_position, axis=0)
 
     baseline = np.multiply(baseline,last_layer_weight)
@@ -57,9 +57,9 @@ def get_temporal_attention(model):
     temporal_layer_model = Model(
         inputs=model.inputs[0], outputs=model.get_layer('score_at_each_position').output)
     ##(datasize,21)
-    score_at_each_position = temporal_layer_model.predict(x_attention_onehot)
-    baseline = np.mean(score_at_each_position, axis=0)
-    baseline = np.multiply(baseline,last_layer_weight)
+    score_at_each_position = temporal_layer_model.predict(x_attention_onehot) ### attention score at each position
+    baseline = np.mean(score_at_each_position, axis=0) # (1, 21)
+    baseline = np.multiply(baseline,last_layer_weight) # (1, 21) x (21, 1) = (1, 1)
     np.savetxt('baseline.csv',baseline,fmt='%.5f',delimiter=',')
 def get_spatial_attention(model):
     spatial_layer_model = Model(

@@ -45,10 +45,10 @@ def model(params):
 def train(params,train_input,train_label,test_input,test_label,issave=True):
     result = Result()
     m = model(params)
-    batch_size = params['train_batch_size']
-    learningrate = params['train_base_learning_rate']
-    epochs = params['train_epochs_num']
-    m.compile(loss='mse', optimizer=Adam(lr=learningrate))
+    batch_size = params['train_batch_size'] #16
+    learningrate = params['train_base_learning_rate'] # 0.00002
+    epochs = params['train_epochs_num'] # 75
+    m.compile(loss='mse', optimizer=Adam(learning_rate=learningrate))
 
     batch_end_callback = LambdaCallback(on_epoch_end=
                                         lambda batch,logs: 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     input = data['input']
     label = data['label']
     input_train_onehot,input_train_biofeat,y_train = AddNoise(input['train']['onehot'],input['train']['biofeat'],
-                                                              label['train'],rate=0,intensity=0)
+                                                              label['train'],rate=0,intensity=0)##### ??? noises
     train(params['CNNParams'],input_train_onehot,y_train,
           input['validate']['onehot'],label['validate'],
           input['test']['onehot'],label['test'])

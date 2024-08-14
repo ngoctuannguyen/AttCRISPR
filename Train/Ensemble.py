@@ -38,9 +38,6 @@ def model(params,withbiofeature=True,cnn_trainable=False,rnn_trainable=False,loa
     if load_weight:
         model.load_weights(params['ensemble_load_file']) 
     return model
-    if load_weight:
-        model.load_weights(params['ensemble_load_file']) 
-    return model
 
 def train(params,
           train_input,train_biofeat,train_label,

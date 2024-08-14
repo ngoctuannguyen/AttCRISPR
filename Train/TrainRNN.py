@@ -12,6 +12,7 @@ import tensorflow.keras.backend as K
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from LearnUtil import *
 import math
+import numpy as np
 
 
 def GaussianKernelBuffer(windowsize):
@@ -35,9 +36,12 @@ def GaussianKernelBuffer(windowsize):
 def model(params):
     GaussianBuffer = GaussianKernelBuffer(params['rnn_window_size'])
     onehot_input = Input(name = 'onehot_input', shape = (21,4, 1,))
-    embedded = Conv2D(params['rnn_embedding_output'], (1, 4),strides=(1,4), padding='Valid', activation=None)(onehot_input)
+    embedded = Conv2D(params['rnn_embedding_output'], (1, 4),strides=(1,4), padding='Valid', activation=None)(onehot_input) 
+    # -> [10, 110]
     embedded = Reshape((21,params['rnn_embedding_output'],))(embedded)
+    # -> [21, 10, 110]
     embedded = SpatialDropout1D(0.25)(embedded)
+    
     ######encoder&decoder######
     encoder = GRU(params['rnn_unit_num'],return_sequences=True,return_state=True,unroll=True)
     encoder = Bidirectional(encoder,merge_mode='sum',name='encoder')
@@ -111,7 +115,7 @@ def train(params,train_input,train_label,test_input,test_label,issave=True):
     learningrate = params['train_base_learning_rate']
     epochs = params['train_epochs_num']
     optimizer = params['optimizer']
-    m.compile(loss='mse', optimizer=optimizer(lr=learningrate))
+    m.compile(loss='mse', optimizer=optimizer(learning_rate=learningrate))
 
     batch_end_callback = LambdaCallback(on_epoch_end=
                                         lambda batch,logs: 

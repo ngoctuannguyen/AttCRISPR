@@ -11,7 +11,8 @@ from ParamsUtil import *
 
 dataset = 'WT'
 datas = ReadValidationData(dataset)
-from keras.models import load_model
+import tensorflow as tf
+from tf.keras.models import load_model
 params = GetParams(dataset)
 filename = params['CNNParams']['cnn_save_file']
 time=0
